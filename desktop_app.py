@@ -1,8 +1,9 @@
-import json
-import os
+import tkinter
+from tkinter.filedialog import askopenfilename
+
+from PIL import Image, ImageTk
 
 import torch
-from PIL import Image
 from torchvision import models
 import torchvision.transforms.v2 as tfs
 from torch import nn
@@ -28,8 +29,7 @@ model.load_state_dict(st)
 model.eval()
 
 
-def predict(path):
-    img = Image.open(path)
+def predict(img):
     img = transforms(img).unsqueeze(0)
 
     p = model(img)
@@ -37,6 +37,18 @@ def predict(path):
     return p2[0].item()
 
 
-# dataset/test/dogs/dog_28.jpg
-# while inp_path := input('Укажите путь к файлу с изображением >> '):
-#     print('Вероятно, это собака' if predict(inp_path) else 'Вероятно, это кот')
+root = tkinter.Tk()
+frame = tkinter.Frame(root)
+frame.grid()
+
+canvas = tkinter.Canvas(root, height=550, width=550)
+
+image = Image.open(askopenfilename())
+p = predict(image)
+image.thumbnail((512, 512))
+photo = ImageTk.PhotoImage(image)
+tk_image = canvas.create_image(0, 0, anchor='nw', image=photo)
+canvas.grid(row=2, column=1)
+
+canvas.create_text(256, 512 + 16, text='Вероятно, это собака' if p else 'Вероятно, это кот')
+root.mainloop()
